@@ -11,31 +11,27 @@
     "lang": "en-US",
     "icons": [
         {
-            "src": "/github-dna-icon-16x16.png",
-            "sizes": "16x16",
-            "type": "image/png"
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
         },
         {
-            "src": "/github-dna-icon-32x32.png",
-            "sizes": "32x32",
-            "type": "image/png"
+            "src": "/favicon.ico",
+            "sizes": "16x16 32x32 48x48",
+            "type": "image/x-icon"
         },
         {
-            "src": "/github-dna-android-chrome-192x192.png",
+            "src": "/favicon.ico",
             "sizes": "192x192",
-            "type": "image/png",
+            "type": "image/x-icon",
             "purpose": "any maskable"
         },
         {
-            "src": "/github-dna-android-chrome-512x512.png",
+            "src": "/favicon.ico",
             "sizes": "512x512",
-            "type": "image/png",
+            "type": "image/x-icon",
             "purpose": "any maskable"
-        },
-        {
-            "src": "/github-dna-apple-touch-icon.png",
-            "sizes": "180x180",
-            "type": "image/png"
         }
     ]
 }
