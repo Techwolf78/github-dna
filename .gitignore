@@ -63,3 +63,6 @@ coverage
 # Internal documentation
 QUICK_SECURITY_FIXES.md
 SECURITY_SCALING_GUIDE.md
+
+# Database schema
+database_schema.sql
