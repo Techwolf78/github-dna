@@ -59,3 +59,7 @@ coverage
 .parcel-cache
 .eslintcache
 .stylelintcache
+
+# Internal documentation
+QUICK_SECURITY_FIXES.md
+SECURITY_SCALING_GUIDE.md
