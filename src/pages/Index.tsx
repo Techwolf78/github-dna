@@ -20,7 +20,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 overflow-hidden relative">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 relative">
       {/* Visit Counter */}
       <VisitCounter />
 
@@ -97,9 +97,18 @@ const Index = () => {
       </div>
 
       {/* Footer */}
-      <footer className="absolute bottom-6 text-center">
-        <p className="text-xs text-muted-foreground/60">
-          Built with 🧬 • Not affiliated with GitHub
+      <footer className="mt-4 md:mt-8 mb-3 md:mb-8 text-center">
+        <p className="text-xs text-muted-foreground/80">
+          Built with 🧬 by{' '}
+          <a
+            href="https://ajay-pawar.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:text-primary/80 transition-colors underline hover:no-underline"
+          >
+            Ajay Pawar
+          </a>{' '}
+          • Not affiliated with GitHub
         </p>
       </footer>
     </div>
