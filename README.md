@@ -1,36 +1,34 @@
-# 2025 Coding DNA 🧬
+# GitHub DNA 🧬
 
-Unlock Your Future Developer Personality for the AI Era
+Discover your Developer Personality through GitHub Analysis
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/techwolf78/github-dna)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🌟 What is 2025 Coding DNA?
+## 🌟 What is GitHub DNA?
 
-2025 Coding DNA analyzes your GitHub profile to reveal the developer you'll become in the AI era! By examining your commit patterns, language preferences, repository activity, and coding style, we decode your 2025 developer personality and show how you'll evolve for the future of coding.
+GitHub DNA analyzes your GitHub profile to reveal your developer personality! By examining your commit patterns, language preferences, repository activity, and coding style, we determine which developer archetype you belong to.
 
-### 🏆 2025 Developer Personalities
+### 🏆 Developer Archetypes
 
-### 🏆 2025 Developer Personalities
-
-- **🏗️ The Architect** - Strategic planners designing AI-integrated systems
-- **🛠️ The Fixer** - Problem solvers adapting to automated debugging
-- **🏃‍♂️ The Sprinter** - Fast-paced developers leveraging AI tools
-- **🦉 The Night Owl** - Late-night coders thriving in the 24/7 AI economy
-- **🔬 The Experimenter** - Innovative developers pioneering AI-assisted coding
-- **🐺 The Lone Wolf** - Independent developers mastering human-AI collaboration
-- **🚀 The Builder** - Ambitious developers creating AI-powered applications
+- **🏗️ The Architect** - Strategic planners who design robust systems
+- **🛠️ The Fixer** - Problem solvers who excel at debugging and maintenance
+- **🏃‍♂️ The Sprinter** - Fast-paced developers who deliver quickly
+- **🦉 The Night Owl** - Late-night coders who work best after dark
+- **🔬 The Experimenter** - Innovative developers who love trying new things
+- **🐺 The Lone Wolf** - Independent developers who prefer solo work
+- **🚀 The Builder** - Ambitious developers who create large-scale projects
 
 ## 🚀 Features
 
-- **🔍 AI-Powered Analysis** - Future-focused GitHub scanning
-- **📊 2025 Personality Scoring** - Multi-factor assessment for the AI era
-- **🏆 Top 2025 Personalities** - Compete with future-ready developers
+- **🔍 Deep GitHub Analysis** - Comprehensive profile scanning
+- **📊 Personality Scoring** - Multi-factor assessment algorithm
+- **🏆 Public Leaderboard** - Compete with other developers
 - **📱 Responsive Design** - Works on all devices
 - **🎨 Beautiful UI** - Modern design with dark mode
 - **⚡ Fast Performance** - Optimized for speed
 - **🛡️ Rate Limiting** - Protected against abuse
-- **📤 Social Sharing** - Share your 2025 developer evolution
+- **📤 Social Sharing** - Share your results
 
 ## 🛠️ Tech Stack
 

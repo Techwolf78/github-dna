@@ -220,10 +220,10 @@ const Leaderboard = () => {
           <div className="text-center sm:text-left">
             <h1 className="text-xl sm:text-2xl font-bold flex items-center justify-center sm:justify-start gap-2 mb-1">
               <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />
-              Top 2025 Developer Personalities
+              GitHub DNA Leaderboard
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Who's leading the 2025 coding revolution? Discover the top developers evolving for the AI era
+              Top developers analyzed through this app, ranked by their GitHub impact and personality
             </p>
           </div>
 

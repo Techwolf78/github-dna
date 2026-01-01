@@ -8,7 +8,6 @@ import DNAReveal from '@/components/DNAReveal';
 import { getDNAById, DNAType } from '@/data/dnaTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
 import { SimpleCaptcha } from '@/components/Captcha';
 import { logError, logUserAction, monitorApiCall } from '@/lib/monitoring';
 
@@ -16,7 +15,6 @@ type AnalysisState = 'input' | 'analyzing' | 'result' | 'past-analysis';
 
 const Analyze = () => {
   const navigate = useNavigate();
-  const { user, session, loading } = useAuth();
   const [state, setState] = useState<AnalysisState>('input');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
@@ -153,13 +151,6 @@ const Analyze = () => {
     }
   };
 
-  // Redirect to auth if not logged in
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    }
-  }, [user, loading, navigate]);
-
   // Cooldown timer effect
   useEffect(() => {
     if (analysisCooldown > 0) {
@@ -170,24 +161,10 @@ const Analyze = () => {
     }
   }, [analysisCooldown]);
 
-  // Show loading while checking auth
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
-
-  // Don't render anything if not authenticated
-  if (!user) {
-    return null;
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    logUserAction('analysis_attempt', { username: username.trim() }, user?.id);
+    logUserAction('analysis_attempt', { username: username.trim() });
 
     if (!username.trim()) {
       setError('Please enter a GitHub username');
@@ -269,13 +246,12 @@ const Analyze = () => {
     // Pre-validate GitHub user exists
     try {
       const startTime = Date.now();
-      logUserAction('analysis_started', { username: username.trim() }, user?.id);
+      logUserAction('analysis_started', { username: username.trim() });
 
       const response = await monitorApiCall(
         'github-user-check',
         () => fetch(`https://api.github.com/users/${username.trim()}`),
-        { username: username.trim() },
-        user?.id
+        { username: username.trim() }
       );
 
       if (!response.ok) {
@@ -300,25 +276,26 @@ const Analyze = () => {
     try {
       const startTime = Date.now();
       
-      // Get the current session directly from Supabase
+      // Get the current session directly from Supabase (optional for anonymous)
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) {
         console.error('Failed to get session:', sessionError);
-        throw new Error('Authentication session expired. Please sign in again.');
-      }
-      
-      if (!currentSession) {
-        throw new Error('No authentication session found. Please sign in again.');
+        // Continue without session for anonymous users
       }
       
       const response = await monitorApiCall(
         'analyze-github',
         () => {
-          const headers = {
+          const headers: Record<string, string> = {
             'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'Authorization': `Bearer ${currentSession.access_token}`
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
           };
+          
+          // Add auth header only if session exists
+          if (currentSession?.access_token) {
+            headers['Authorization'] = `Bearer ${currentSession.access_token}`;
+          }
+          
           console.log('🚀 Making API call with headers:', {
             hasAuth: !!headers.Authorization,
             authLength: headers.Authorization?.length,
@@ -331,8 +308,7 @@ const Analyze = () => {
             body: JSON.stringify({ username: username.trim() })
           });
         },
-        { username: username.trim() },
-        user?.id
+        { username: username.trim() }
       );
 
       if (!response.ok) {
@@ -375,9 +351,8 @@ const Analyze = () => {
       
       logError(err instanceof Error ? err : new Error(message), {
         context: 'analysis',
-        username: username.trim(),
-        userId: user?.id
-      }, user?.id);
+        username: username.trim()
+      });
       toast.error(message);
       setState('input');
     } finally {
