@@ -183,33 +183,34 @@ const Leaderboard = () => {
 
       <div className="p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col gap-1 mb-2">
           {/* Mobile: Back button and Refresh button in one row */}
           <div className="flex items-center justify-between sm:hidden">
             <Button
               variant="ghost"
               onClick={() => navigate('/')}
-              className="gap-2"
+              size="sm"
+              className="gap-1 h-8"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3 h-3" />
               Back
             </Button>
             <Button
               onClick={handleRefresh}
               disabled={loading || refreshCooldown > 0}
               size="sm"
-              className={`gap-2 transition-all duration-200 ${
+              className={`gap-1 h-8 transition-all duration-200 ${
                 refreshCooldown > 0
                   ? 'animate-pulse bg-orange-100 hover:bg-orange-200 text-orange-700 border-orange-300'
                   : 'hover:scale-105 active:scale-95'
               }`}
             >
               {refreshCooldown > 0 ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-orange-600" />
+                <RefreshCw className="w-3 h-3 animate-spin text-orange-600" />
               ) : loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3 h-3 animate-spin" />
               ) : (
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="w-3 h-3" />
               )}
               {refreshCooldown > 0 ? `${refreshCooldown}s` : loading ? '...' : ''}
             </Button>
@@ -217,11 +218,11 @@ const Leaderboard = () => {
 
           {/* Title and subtitle */}
           <div className="text-center sm:text-left">
-            <h1 className="text-2xl sm:text-3xl font-bold flex items-center justify-center sm:justify-start gap-3 mb-2">
-              <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center justify-center sm:justify-start gap-2 mb-1">
+              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />
               GitHub DNA Leaderboard
             </h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Top developers analyzed through this app, ranked by their GitHub impact and personality
             </p>
           </div>
@@ -231,26 +232,28 @@ const Leaderboard = () => {
             <Button
               variant="ghost"
               onClick={() => navigate('/')}
-              className="gap-2"
+              size="sm"
+              className="gap-1 h-8"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3 h-3" />
               Back
             </Button>
             <Button
               onClick={handleRefresh}
               disabled={loading || refreshCooldown > 0}
-              className={`gap-2 transition-all duration-200 ${
+              size="sm"
+              className={`gap-1 h-8 transition-all duration-200 ${
                 refreshCooldown > 0
                   ? 'animate-pulse bg-orange-100 hover:bg-orange-200 text-orange-700 border-orange-300'
                   : 'hover:scale-105 active:scale-95'
               }`}
             >
               {refreshCooldown > 0 ? (
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin text-orange-600" />
+                <RefreshCw className="w-3 h-3 mr-1 animate-spin text-orange-600" />
               ) : loading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
               ) : (
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-3 h-3 mr-1" />
               )}
               {refreshCooldown > 0 ? `Wait ${refreshCooldown}s` : loading ? 'Refreshing...' : 'Refresh'}
             </Button>
@@ -258,28 +261,28 @@ const Leaderboard = () => {
         </div>
 
         {/* Scoring Info */}
-        <Card className="mb-6 bg-muted/30">
-          <CardContent className="pt-6">
-            <h3 className="font-semibold mb-2">How Scores Are Calculated:</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Github className="w-4 h-4" />
+        <Card className="mb-4 bg-muted/30">
+          <CardContent className="p-3">
+            <h3 className="font-semibold mb-2 md:mb-1 text-sm md:text-xs">How Scores Are Calculated:</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-1 text-xs md:text-xs">
+              <div className="flex items-center gap-2 md:gap-1">
+                <Github className="w-4 h-4 md:w-3 md:h-3" />
                 <span>10 pts/repo</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4" />
+              <div className="flex items-center gap-2 md:gap-1">
+                <Star className="w-4 h-4 md:w-3 md:h-3" />
                 <span>5 pts/star</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
+              <div className="flex items-center gap-2 md:gap-1">
+                <Users className="w-4 h-4 md:w-3 md:h-3" />
                 <span>20 pts/follower</span>
               </div>
-              <div className="flex items-center gap-2">
-                <GitFork className="w-4 h-4" />
+              <div className="flex items-center gap-2 md:gap-1">
+                <GitFork className="w-4 h-4 md:w-3 md:h-3" />
                 <span>3 pts/fork</span>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs md:text-xs text-muted-foreground mt-2 md:mt-1">
               Bonus points for activity, documentation, and DNA type multipliers
             </p>
           </CardContent>
@@ -295,10 +298,10 @@ const Leaderboard = () => {
 
               return (
                 <Card key={user.username} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-3 sm:p-4 md:p-6">
+                  <CardContent className="p-1 sm:p-2 md:p-3">
                     {/* Mobile Layout - Stack vertically */}
                     <div className="block md:hidden">
-                      <div className="flex items-center gap-3 mb-3">
+                      <div className="flex items-center gap-3 mb-1">
                         {/* Rank */}
                         <div className="flex items-center justify-center w-8 h-8 flex-shrink-0">
                           {getRankIcon(rank)}
@@ -349,7 +352,7 @@ const Leaderboard = () => {
                       </div>
 
                       {/* Metrics - Compact on mobile */}
-                      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground border-t border-border/50 pt-2">
+                      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground border-t border-border/50 pt-1">
                         <div className="flex items-center gap-1">
                           <Github className="w-3 h-3" />
                           {user.metrics.repos}
@@ -382,7 +385,7 @@ const Leaderboard = () => {
 
                         {/* User Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-1">
                             <a
                               href={`https://github.com/${user.username}`}
                               target="_blank"
@@ -396,8 +399,8 @@ const Leaderboard = () => {
                             </Badge>
                           </div>
 
-                          {/* DNA Types */}
-                          <div className="flex flex-wrap items-center gap-2 mb-3">
+                          {/* DNA Types and Metrics in same row */}
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
                             <span className="text-sm text-muted-foreground">DNA:</span>
                             {primaryDNA && (
                               <Badge variant="secondary" className="gap-1 text-xs">
@@ -411,21 +414,20 @@ const Leaderboard = () => {
                                 {secondaryDNA.name}
                               </Badge>
                             )}
-                          </div>
-
-                          {/* Metrics */}
-                          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Github className="w-4 h-4" />
-                              {user.metrics.repos} repos
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4" />
-                              {user.metrics.stars} stars
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Users className="w-4 h-4" />
-                              {user.metrics.followers} followers
+                            {/* Metrics inline */}
+                            <div className="flex flex-nowrap items-center gap-2 sm:gap-3 text-xs text-muted-foreground ml-2">
+                              <div className="flex items-center gap-1">
+                                <Github className="w-3 h-3" />
+                                {user.metrics.repos}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Star className="w-3 h-3" />
+                                {user.metrics.stars}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                {user.metrics.followers}
+                              </div>
                             </div>
                           </div>
                         </div>

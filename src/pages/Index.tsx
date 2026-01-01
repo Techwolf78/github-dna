@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DNAHelix from '@/components/DNAHelix';
 import AnalyzeButton from '@/components/AnalyzeButton';
+import VisitCounter from '@/components/VisitCounter';
 import { Github, Trophy } from 'lucide-react';
 
 const Index = () => {
@@ -20,6 +21,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 overflow-hidden relative">
+      {/* Visit Counter */}
+      <VisitCounter />
+
       {/* Background glow effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-dna-purple/10 rounded-full blur-3xl" />
