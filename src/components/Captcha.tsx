@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface CaptchaProps {
   onVerify: (token: string) => void;
@@ -36,19 +37,25 @@ export function SimpleCaptcha({ onVerify, onError }: CaptchaProps) {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Background
-    ctx.fillStyle = '#f8fafc';
+    // Theme-aware background
+    const isDark = document.documentElement.classList.contains('dark');
+    ctx.fillStyle = isDark ? '#0f172a' : '#f8fafc'; // slate-900 or slate-50
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Add noise
+    // Add noise with theme-aware colors
     for (let i = 0; i < 50; i++) {
-      ctx.fillStyle = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.3)`;
+      const alpha = 0.3;
+      if (isDark) {
+        ctx.fillStyle = `rgba(${Math.random() * 100 + 155}, ${Math.random() * 100 + 155}, ${Math.random() * 100 + 155}, ${alpha})`;
+      } else {
+        ctx.fillStyle = `rgba(${Math.random() * 100}, ${Math.random() * 100}, ${Math.random() * 100}, ${alpha})`;
+      }
       ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 1, 1);
     }
 
-    // Draw text with distortion
+    // Draw text with theme-aware color
     ctx.font = '24px monospace';
-    ctx.fillStyle = '#1e293b';
+    ctx.fillStyle = isDark ? '#f1f5f9' : '#1e293b'; // slate-100 or slate-800
 
     for (let i = 0; i < text.length; i++) {
       const x = 20 + i * 25;
@@ -60,8 +67,8 @@ export function SimpleCaptcha({ onVerify, onError }: CaptchaProps) {
       ctx.restore();
     }
 
-    // Add lines
-    ctx.strokeStyle = '#cbd5e1';
+    // Add lines with theme-aware color
+    ctx.strokeStyle = isDark ? '#334155' : '#cbd5e1'; // slate-700 or slate-300
     ctx.lineWidth = 1;
     for (let i = 0; i < 3; i++) {
       ctx.beginPath();
@@ -87,6 +94,22 @@ export function SimpleCaptcha({ onVerify, onError }: CaptchaProps) {
     generateCaptcha();
   }, []);
 
+  // Regenerate CAPTCHA when theme changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      if (captchaText) {
+        drawCaptcha(captchaText);
+      }
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, [captchaText]);
+
   if (isVerified) {
     return (
       <div className="flex items-center gap-2 text-green-600">
@@ -105,7 +128,7 @@ export function SimpleCaptcha({ onVerify, onError }: CaptchaProps) {
           ref={canvasRef}
           width="160"
           height="50"
-          className="border border-gray-300 rounded bg-white"
+          className="border border-input rounded bg-background"
         />
         <Button
           type="button"
@@ -119,13 +142,13 @@ export function SimpleCaptcha({ onVerify, onError }: CaptchaProps) {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2">
-        <input
+        <Input
           type="text"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           placeholder="Enter CAPTCHA text"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
           maxLength={6}
+          className="flex-1"
         />
         <Button
           type="button"
