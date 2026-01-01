@@ -186,14 +186,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Tailwind CSS](https://tailwindcss.com/) for the styling framework
 - [Shadcn/ui](https://ui.shadcn.com/) for beautiful components
 
-## 📞 Support
-
-If you have any questions or need help:
-
-- 📧 Email: support@github-dna.com
-- 🐛 Issues: [GitHub Issues](https://github.com/techwolf78/github-dna/issues)
-- 💬 Discord: [Join our community](https://discord.gg/github-dna)
-
 ---
 
 ## 🎨 Assets & Icons
