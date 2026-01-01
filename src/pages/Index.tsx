@@ -46,8 +46,8 @@ const Index = () => {
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          <span className="text-foreground">Your code has a </span>
-          <span className="text-gradient-dna">personality.</span>
+          <span className="text-foreground">Unlock Your </span>
+          <span className="text-gradient-dna">2025 Coding DNA</span>
         </h1>
 
         {/* Subtitle */}
@@ -56,7 +56,7 @@ const Index = () => {
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
-          Analyze your GitHub commits and discover your Developer DNA.
+          Discover the developer you'll become in the AI era.
         </p>
 
         {/* CTA Button */}
@@ -80,7 +80,7 @@ const Index = () => {
           >
             <Trophy className="w-4 h-4 group-hover:text-yellow-500 transition-colors" />
             <span className="border-b border-transparent group-hover:border-primary transition-colors">
-              View Developer Leaderboard
+              Top 2025 Developer Personalities
             </span>
           </button>
         </div>
@@ -99,14 +99,14 @@ const Index = () => {
       {/* Footer */}
       <footer className="mt-4 md:mt-8 mb-3 md:mb-8 text-center">
         <p className="text-xs text-muted-foreground/80">
-          Built with 🧬 by{' '}
+          Built with 🧬 for{' '}
           <a
             href="https://ajay-pawar.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:text-primary/80 transition-colors underline hover:no-underline"
           >
-            Ajay Pawar
+            2025 Coding DNA
           </a>{' '}
           • Not affiliated with GitHub
         </p>

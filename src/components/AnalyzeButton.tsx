@@ -18,7 +18,7 @@ const AnalyzeButton = ({ onClick }: AnalyzeButtonProps) => {
     >
       <span className="relative z-10 flex items-center gap-3">
         <Github className="w-5 h-5" />
-        <span>Analyze my GitHub</span>
+        <span>Decode Your 2025 Coding DNA</span>
         <ArrowRight className={`w-5 h-5 transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`} />
       </span>
       
