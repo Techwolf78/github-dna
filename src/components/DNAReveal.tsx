@@ -173,8 +173,8 @@ const DNAReveal = ({ username, primaryDNA, secondaryDNA, onReset }: DNARevealPro
                           : 'bg-muted/50'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                           index === 0 ? 'bg-yellow-500 text-white' :
                           index === 1 ? 'bg-gray-400 text-white' :
                           index === 2 ? 'bg-amber-600 text-white' :
@@ -185,16 +185,16 @@ const DNAReveal = ({ username, primaryDNA, secondaryDNA, onReset }: DNARevealPro
                         <img 
                           src={user.avatar_url} 
                           alt={user.username}
-                          className="w-8 h-8 rounded-full"
+                          className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex-shrink-0"
                         />
-                        <div>
-                          <div className="font-medium text-sm">@{user.username}</div>
-                          <div className="text-xs text-muted-foreground">{user.dna_primary}</div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-sm truncate">@{user.username}</div>
+                          <div className="text-xs text-muted-foreground truncate">{user.dna_primary}</div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0 ml-2">
                         <div className="font-bold text-sm">{Math.round(user.score)}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground hidden sm:block">
                           {user.metrics.followers} followers
                         </div>
                       </div>

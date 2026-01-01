@@ -100,7 +100,7 @@ export function SimpleCaptcha({ onVerify, onError }: CaptchaProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-center gap-3">
         <canvas
           ref={canvasRef}
           width="160"
@@ -112,13 +112,13 @@ export function SimpleCaptcha({ onVerify, onError }: CaptchaProps) {
           variant="outline"
           size="sm"
           onClick={generateCaptcha}
-          className="text-xs"
+          className="text-xs w-full sm:w-auto"
         >
           ↻ Refresh
         </Button>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           value={userInput}
@@ -131,7 +131,7 @@ export function SimpleCaptcha({ onVerify, onError }: CaptchaProps) {
           type="button"
           onClick={verifyCaptcha}
           size="sm"
-          className="px-4"
+          className="w-full sm:w-auto px-4"
         >
           Verify
         </Button>

@@ -170,7 +170,7 @@ const Leaderboard = () => {
 
       <div className="p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -181,11 +181,11 @@ const Leaderboard = () => {
               Back
             </Button>
             <div>
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <Trophy className="w-8 h-8 text-yellow-500" />
+              <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
+                <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
                 GitHub DNA Leaderboard
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
                 Top developers analyzed through this app, ranked by their GitHub impact and personality
               </p>
             </div>
@@ -248,10 +248,10 @@ const Leaderboard = () => {
 
               return (
                 <Card key={user.username} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-center gap-3 sm:gap-4">
                       {/* Rank */}
-                      <div className="flex items-center justify-center w-12">
+                      <div className="flex items-center justify-center w-10 sm:w-12 flex-shrink-0">
                         {getRankIcon(rank)}
                       </div>
 
@@ -259,36 +259,36 @@ const Leaderboard = () => {
                       <img
                         src={user.avatar_url}
                         alt={user.username}
-                        className="w-12 h-12 rounded-full border-2 border-border"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-border flex-shrink-0"
                       />
 
                       {/* User Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-2">
                           <a
                             href={`https://github.com/${user.username}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-semibold text-lg truncate hover:text-primary transition-colors cursor-pointer"
+                            className="font-semibold text-base sm:text-lg truncate hover:text-primary transition-colors cursor-pointer"
                           >
                             @{user.username}
                           </a>
-                          <Badge className={getRankBadgeColor(rank)}>
+                          <Badge className={`${getRankBadgeColor(rank)} text-xs`}>
                             Rank #{rank}
                           </Badge>
                         </div>
 
                         {/* DNA Types */}
-                        <div className="flex items-center gap-2 mb-3">
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
                           <span className="text-sm text-muted-foreground">DNA:</span>
                           {primaryDNA && (
-                            <Badge variant="secondary" className="gap-1">
+                            <Badge variant="secondary" className="gap-1 text-xs">
                               <span>{primaryDNA.icon}</span>
                               {primaryDNA.name}
                             </Badge>
                           )}
                           {secondaryDNA && (
-                            <Badge variant="outline" className="gap-1">
+                            <Badge variant="outline" className="gap-1 text-xs">
                               <span>{secondaryDNA.icon}</span>
                               {secondaryDNA.name}
                             </Badge>
@@ -296,7 +296,7 @@ const Leaderboard = () => {
                         </div>
 
                         {/* Metrics */}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Github className="w-4 h-4" />
                             {user.metrics.repos} repos
@@ -313,8 +313,8 @@ const Leaderboard = () => {
                       </div>
 
                       {/* Score */}
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-primary">
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-xl sm:text-2xl font-bold text-primary">
                           {user.score.toLocaleString()}
                         </div>
                         <div className="text-sm text-muted-foreground">points</div>
