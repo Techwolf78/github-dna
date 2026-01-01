@@ -8,13 +8,17 @@ import {
   BarChart3,
   Loader2,
   LogOut,
-  RefreshCw
+  RefreshCw,
+  Github,
+  Trophy,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logError, monitorApiCall } from '@/lib/monitoring';
 import {
   BarChart,
   Bar,
@@ -99,14 +103,19 @@ const Admin = () => {
       }
 
       console.log('✅ Got access token, making request to admin-analytics...')
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-analytics`,
-        {
-          headers: {
-            'Authorization': `Bearer ${session.session.access_token}`,
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+      const response = await monitorApiCall(
+        'admin-analytics',
+        () => fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-analytics`,
+          {
+            headers: {
+              'Authorization': `Bearer ${session.session.access_token}`,
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+            }
           }
-        }
+        ),
+        {},
+        user?.id
       );
 
       console.log('📡 Response status:', response.status)
@@ -126,6 +135,10 @@ const Admin = () => {
       console.log('✅ Data set successfully')
     } catch (err) {
       console.error('💥 Error in fetchAnalytics:', err);
+      logError(err instanceof Error ? err : new Error('Failed to fetch analytics'), {
+        context: 'admin_analytics',
+        userId: user?.id
+      }, user?.id);
       toast.error('Failed to load analytics');
     } finally {
       console.log('🏁 Setting loading to false')
@@ -146,6 +159,29 @@ const Admin = () => {
     );
   }
 
+  // Check if user is authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold mb-2">Authentication Required</h1>
+          <p className="text-muted-foreground mb-6">
+            Please sign in to access the admin dashboard.
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate('/auth')}>
+              Sign In
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/analyze')}>
+              <Github className="w-4 h-4 mr-2" />
+              Analyze DNA
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAdmin && !loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
@@ -154,10 +190,16 @@ const Admin = () => {
           <p className="text-muted-foreground mb-6">
             You don't have admin access. Contact the administrator to get access.
           </p>
-          <Button onClick={() => navigate('/')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back Home
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate('/')} className="mr-2">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back Home
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/analyze')}>
+              <Github className="w-4 h-4 mr-2" />
+              Analyze DNA
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -192,10 +234,58 @@ const Admin = () => {
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
+            <Button variant="default" onClick={() => navigate('/analyze')}>
+              <Github className="w-4 h-4 mr-2" />
+              Analyze DNA
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/leaderboard')}>
+              <Trophy className="w-4 h-4 mr-2" />
+              Leaderboard
+            </Button>
             <Button variant="ghost" onClick={handleSignOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
             </Button>
+          </div>
+        </div>
+
+        {/* Quick Navigation */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => navigate('/analyze')}>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Github className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium">Analyze DNA</h3>
+                  <p className="text-sm text-muted-foreground">Run a new GitHub analysis</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => navigate('/leaderboard')}>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="p-2 bg-yellow-500/10 rounded-lg">
+                  <Trophy className="w-5 h-5 text-yellow-500" />
+                </div>
+                <div>
+                  <h3 className="font-medium">Leaderboard</h3>
+                  <p className="text-sm text-muted-foreground">View developer rankings</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => navigate('/')}>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="p-2 bg-green-500/10 rounded-lg">
+                  <ArrowLeft className="w-5 h-5 text-green-500" />
+                </div>
+                <div>
+                  <h3 className="font-medium">Home</h3>
+                  <p className="text-sm text-muted-foreground">Back to main page</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 

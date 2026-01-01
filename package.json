@@ -15,13 +15,13 @@
     "typescript",
     "vite"
   ],
-  "homepage": "https://github-dna.vercel.app/",
+  "homepage": "./",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/github-dna.git"
+    "url": "https://github.com/techwolf78/github-dna.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/github-dna/issues"
+    "url": "https://github.com/techwolf78/github-dna/issues"
   },
   "scripts": {
     "dev": "vite",

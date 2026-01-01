@@ -11,8 +11,12 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
+import { setupGlobalErrorHandling } from "@/lib/monitoring";
 
 const queryClient = new QueryClient();
+
+// Setup global error monitoring
+setupGlobalErrorHandling();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

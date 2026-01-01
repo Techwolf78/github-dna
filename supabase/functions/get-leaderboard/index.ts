@@ -1,9 +1,11 @@
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
 // Simple in-memory rate limiting
@@ -58,15 +60,12 @@ serve(async (req) => {
       });
     }
 
-    console.log('Leaderboard function called')
-
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Get all users with their raw metrics
-    console.log('Fetching users with metrics...')
     const { data: users, error } = await supabase
       .from('users')
       .select('username, avatar_url, dna_primary, dna_secondary, raw_metrics, analyzed_at')
@@ -74,29 +73,71 @@ serve(async (req) => {
       .order('analyzed_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching users:', error)
       throw error
     }
-
-    console.log(`Found ${users?.length || 0} users with metrics`)
 
     // Filter out invalid users (those with no activity)
     const validUsers = users?.filter(user => {
       const metrics = user.raw_metrics as any
-      return metrics &&
+      const isValid = metrics &&
              (metrics.totalRepos > 0 ||
               metrics.totalStars > 0 ||
               metrics.followers > 0 ||
               metrics.totalForks > 0)
+      
+      return isValid
     }) || []
 
-    console.log(`Valid users after filtering: ${validUsers.length}`)
-
-    // Calculate scores for each user
-    const leaderboard = validUsers.map(user => {
+    // Calculate preliminary scores (without fetching followers) and sort
+    const preliminaryLeaderboard = validUsers.map(user => {
       const metrics = user.raw_metrics as any
-      const score = calculateScore(metrics, user.dna_primary)
+      const followers = metrics?.followers || 0
+      const score = calculateScore({...metrics, followers}, user.dna_primary)
+      return { user, score, followers }
+    }).sort((a, b) => b.score - a.score)
 
+    // Now fetch followers for top 10 if missing
+    const leaderboardPromises = preliminaryLeaderboard.slice(0, 10).map(async ({ user, score: prelimScore, followers }) => {
+      let updatedFollowers = followers
+      
+      if (updatedFollowers === 0) {
+        try {
+          const response = await fetch(`https://api.github.com/users/${user.username}`, {
+            headers: {
+              'User-Agent': 'GitHub-DNA-Analyzer/1.0',
+              'Authorization': `Bearer ${Deno.env.get('GITHUB_TOKEN') || ''}`
+            }
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            updatedFollowers = data.followers || 0
+          }
+        } catch (error) {
+        }
+      }
+      
+      const metrics = user.raw_metrics as any
+      const finalScore = calculateScore({...metrics, followers: updatedFollowers}, user.dna_primary)
+
+      return {
+        username: user.username,
+        avatar_url: user.avatar_url,
+        dna_primary: user.dna_primary,
+        dna_secondary: user.dna_secondary,
+        score: Math.round(finalScore),
+        metrics: {
+          repos: metrics?.totalRepos || 0,
+          stars: metrics?.totalStars || 0,
+          followers: updatedFollowers
+        },
+        analyzed_at: user.analyzed_at
+      }
+    })
+
+    // For the rest, use existing data
+    const restPromises = preliminaryLeaderboard.slice(10).map(({ user, score, followers }) => {
+      const metrics = user.raw_metrics as any
       return {
         username: user.username,
         avatar_url: user.avatar_url,
@@ -106,22 +147,22 @@ serve(async (req) => {
         metrics: {
           repos: metrics?.totalRepos || 0,
           stars: metrics?.totalStars || 0,
-          followers: metrics?.followers || 0
+          followers: followers
         },
         analyzed_at: user.analyzed_at
       }
-    }).sort((a, b) => b.score - a.score) // Sort by score descending
-    .slice(0, 50) // Top 50 users
-    || []
+    })
 
-    console.log('Leaderboard calculated:', leaderboard.length, 'users')
+    const leaderboard = (await Promise.all([...leaderboardPromises, ...restPromises]))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 50)
+      || []
 
     return new Response(JSON.stringify({ leaderboard }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
   } catch (error) {
-    console.error('Error in leaderboard:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

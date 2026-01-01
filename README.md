@@ -2,7 +2,7 @@
 
 Discover your Developer Personality through GitHub Analysis
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/github-dna)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/techwolf78/github-dna)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🌟 What is GitHub DNA?
@@ -50,7 +50,7 @@ GitHub DNA analyzes your GitHub profile to reveal your developer personality! By
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/github-dna.git
+git clone https://github.com/techwolf78/github-dna.git
 cd github-dna
 ```
 
@@ -191,7 +191,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you have any questions or need help:
 
 - 📧 Email: support@github-dna.com
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/github-dna/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/techwolf78/github-dna/issues)
 - 💬 Discord: [Join our community](https://discord.gg/github-dna)
 
 ---

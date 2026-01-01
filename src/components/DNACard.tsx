@@ -31,7 +31,9 @@ const DNACard = ({ dna, isSecondary = false, delay = 0 }: DNACardProps) => {
         )}
 
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-3xl">{dna.icon}</span>
+          <div className="drop-shadow-lg filter brightness-110 contrast-110">
+            {dna.icon}
+          </div>
           <h3 className={`text-xl font-bold tracking-tight ${isSecondary ? 'text-foreground/80' : 'text-gradient-dna'}`}>
             {dna.name}
           </h3>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -8,7 +9,7 @@ const corsHeaders = {
 const dnaTypes = {
   architect: { name: 'THE ARCHITECT', icon: '🏗️', color: '#8B5CF6' },
   fixer: { name: 'THE FIXER', icon: '🛠️', color: '#06B6D4' },
-  sprinter: { name: 'THE SPRINTER', icon: '🏃‍♂️', color: '#F59E0B' },
+  sprinter: { name: 'THE SPRINTER', icon: '💨', color: '#F59E0B' },
   nightowl: { name: 'THE NIGHT OWL', icon: '🦉', color: '#3B82F6' },
   experimenter: { name: 'THE EXPERIMENTER', icon: '🔬', color: '#EC4899' },
   lonewolf: { name: 'THE LONE WOLF', icon: '🐺', color: '#8B5CF6' },
@@ -71,6 +72,7 @@ serve(async (req) => {
     const username = url.searchParams.get('username')
     const primary = url.searchParams.get('primary')
     const secondary = url.searchParams.get('secondary')
+    const baseUrl = url.searchParams.get('url') || 'https://github-dna.dev'
 
     if (!username || !primary || !secondary) {
       return new Response('Missing parameters', { status: 400, headers: corsHeaders })
@@ -84,7 +86,7 @@ serve(async (req) => {
     }
 
     // Generate SVG
-    const svg = generateShareCardSVG(username, primaryDNA, secondaryDNA)
+    const svg = generateShareCardSVG(username, primaryDNA, secondaryDNA, baseUrl)
 
     return new Response(svg, {
       headers: {
@@ -99,7 +101,7 @@ serve(async (req) => {
   }
 })
 
-function generateShareCardSVG(username: string, primary: any, secondary: any): string {
+function generateShareCardSVG(username: string, primary: any, secondary: any, baseUrl: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -173,7 +175,7 @@ function generateShareCardSVG(username: string, primary: any, secondary: any): s
 
   <!-- Footer -->
   <text x="400" y="360" text-anchor="middle" font-family="Space Grotesk, Arial, sans-serif" font-size="14" fill="#737373">
-    github-dna.dev
+    ${baseUrl.replace('https://', '')}
   </text>
   <text x="400" y="380" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#525252">
     Discover your developer personality

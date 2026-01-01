@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import DNAReveal from '@/components/DNAReveal';
 import { getDNAById } from '@/data/dnaTypes';
 import { supabase } from '@/integrations/supabase/client';
+import { logError, monitorApiCall } from '@/lib/monitoring';
 
 interface UserResult {
   username: string;
@@ -39,13 +40,18 @@ const Result = () => {
         });
 
         // Manual fetch since invoke doesn't support query params well
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-user-result?username=${encodeURIComponent(username)}`,
-          {
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+        const response = await monitorApiCall(
+          'get-user-result',
+          () => fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-user-result?username=${encodeURIComponent(username)}`,
+            {
+              headers: {
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+              }
             }
-          }
+          ),
+          { username },
+          undefined // No user context for public results
         );
 
         const responseData = await response.json();
@@ -59,6 +65,10 @@ const Result = () => {
         setResult(responseData);
       } catch (err) {
         console.error('Error fetching result:', err);
+        logError(err instanceof Error ? err : new Error('Failed to load result'), {
+          context: 'result_fetch',
+          username
+        });
         setError('Failed to load result');
       } finally {
         setLoading(false);

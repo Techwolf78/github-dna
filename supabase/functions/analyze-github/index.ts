@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -6,28 +7,148 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Simple in-memory rate limiting (in production, use Redis or database)
+// Database-based rate limiting (production-ready)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetIn: number } {
+async function checkRateLimit(supabase: any, userId: string | null, ip: string): Promise<{ allowed: boolean; remaining: number; resetIn: number; tier: string }> {
+  const now = Date.now();
+  const identifier = userId || ip; // Use user ID if authenticated, otherwise IP
+
+  // Define rate limits by user tier
+  const RATE_LIMITS = {
+    ANONYMOUS: { requests: 3, window: 60 * 60 * 1000 },     // 3/hour for anonymous
+    FREE: { requests: 10, window: 60 * 60 * 1000 },         // 10/hour for free users
+    PREMIUM: { requests: 50, window: 60 * 60 * 1000 },      // 50/hour for premium
+    ADMIN: { requests: 1000, window: 60 * 60 * 1000 }       // 1000/hour for admins
+  };
+
+  try {
+    // Get user tier from database
+    let userTier = 'ANONYMOUS';
+    if (userId) {
+      try {
+        const { data: userData, error } = await supabase
+          .from('user_profiles')
+          .select('tier')
+          .eq('user_id', userId)
+          .single();
+
+        if (!error && userData) {
+          userTier = userData.tier || 'FREE';
+        } else {
+          // If user_profiles table doesn't exist or user not found, default to FREE
+          userTier = 'FREE';
+        }
+      } catch (profileError) {
+        // If table doesn't exist or any other error, default to FREE
+        userTier = 'FREE';
+      }
+    }
+
+    const limit = RATE_LIMITS[userTier as keyof typeof RATE_LIMITS] || RATE_LIMITS.FREE;
+
+    // Check database for rate limit record
+    const { data: rateLimitData, error } = await supabase
+      .from('rate_limits')
+      .select('*')
+      .eq('identifier', identifier)
+      .eq('action', 'github_analysis')
+      .single();
+
+    let currentCount = 0;
+    let resetTime = now + limit.window;
+
+    if (rateLimitData && !error) {
+      // Existing record found
+      if (now > rateLimitData.reset_time) {
+        // Reset window has passed, reset counter
+        currentCount = 1;
+        resetTime = now + limit.window;
+
+        // Update database
+        await supabase
+          .from('rate_limits')
+          .update({
+            count: currentCount,
+            reset_time: resetTime,
+            updated_at: new Date().toISOString()
+          })
+          .eq('identifier', identifier)
+          .eq('action', 'github_analysis');
+      } else {
+        // Still in current window
+        currentCount = rateLimitData.count + 1;
+        resetTime = rateLimitData.reset_time;
+
+        if (currentCount > limit.requests) {
+          return {
+            allowed: false,
+            remaining: 0,
+            resetIn: resetTime - now,
+            tier: userTier
+          };
+        }
+
+        // Update count
+        await supabase
+          .from('rate_limits')
+          .update({
+            count: currentCount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('identifier', identifier)
+          .eq('action', 'github_analysis');
+      }
+    } else {
+      // No existing record, create new one
+      currentCount = 1;
+
+      await supabase
+        .from('rate_limits')
+        .insert({
+          identifier,
+          action: 'github_analysis',
+          count: currentCount,
+          reset_time: resetTime,
+          tier: userTier,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+    }
+
+    return {
+      allowed: true,
+      remaining: Math.max(0, limit.requests - currentCount),
+      resetIn: resetTime - now,
+      tier: userTier
+    };
+
+  } catch (error) {
+    console.error('Rate limit check error:', error);
+    // Fallback to basic in-memory rate limiting
+    return fallbackRateLimit(identifier);
+  }
+}
+
+// Fallback rate limiting for errors
+function fallbackRateLimit(identifier: string): { allowed: boolean; remaining: number; resetIn: number; tier: string } {
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15 minutes
-  const maxRequests = 20; // 20 requests per 15 minutes
+  const maxRequests = 5; // Conservative fallback
 
-  const userLimit = rateLimitStore.get(ip);
+  const userLimit = rateLimitStore.get(identifier);
 
   if (!userLimit || now > userLimit.resetTime) {
-    // Reset or create new limit
-    rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs });
-    return { allowed: true, remaining: maxRequests - 1, resetIn: windowMs };
+    rateLimitStore.set(identifier, { count: 1, resetTime: now + windowMs });
+    return { allowed: true, remaining: maxRequests - 1, resetIn: windowMs, tier: 'FALLBACK' };
   }
 
   if (userLimit.count >= maxRequests) {
-    return { allowed: false, remaining: 0, resetIn: userLimit.resetTime - now };
+    return { allowed: false, remaining: 0, resetIn: userLimit.resetTime - now, tier: 'FALLBACK' };
   }
 
   userLimit.count++;
-  return { allowed: true, remaining: maxRequests - userLimit.count, resetIn: userLimit.resetTime - now };
+  return { allowed: true, remaining: maxRequests - userLimit.count, resetIn: userLimit.resetTime - now, tier: 'FALLBACK' };
 }
 
 serve(async (req) => {
@@ -37,16 +158,57 @@ serve(async (req) => {
   }
 
   try {
-    // Rate limiting check
+    // Initialize Supabase client with service role key for auth validation
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Get user from authorization header (if authenticated)
+    const authHeader = req.headers.get('authorization');
+    let userId = null;
+
+    console.log('🔐 Auth header present:', !!authHeader);
+    console.log('🔐 Auth header starts with Bearer:', authHeader?.startsWith('Bearer '));
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.substring(7);
+        console.log('🔐 Token length:', token.length);
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        
+        if (error) {
+          console.error('🔐 Auth error:', error);
+          return new Response(JSON.stringify({ error: 'Invalid authentication token' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        userId = user?.id || null;
+        console.log('🔐 Authenticated user ID:', userId);
+      } catch (error) {
+        console.error('🔐 Auth token validation failed:', error);
+        return new Response(JSON.stringify({ error: 'Authentication failed' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    } else {
+      console.log('🔐 No auth header or not Bearer token');
+    }
+
+    // Rate limiting check with user context
     const clientIP = req.headers.get('x-forwarded-for') ||
                     req.headers.get('x-real-ip') ||
                     'unknown';
 
-    const rateLimit = checkRateLimit(clientIP);
+    const rateLimit = await checkRateLimit(supabase, userId, clientIP);
     if (!rateLimit.allowed) {
       return new Response(JSON.stringify({
-        error: 'Rate limit exceeded. Please try again later.',
-        retryAfter: Math.ceil(rateLimit.resetIn / 1000)
+        error: `Rate limit exceeded for ${rateLimit.tier} tier. Please try again later.`,
+        retryAfter: Math.ceil(rateLimit.resetIn / 1000),
+        tier: rateLimit.tier
       }), {
         status: 429,
         headers: {
@@ -54,6 +216,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
           'X-RateLimit-Remaining': rateLimit.remaining.toString(),
           'X-RateLimit-Reset': Math.ceil(rateLimit.resetIn / 1000).toString(),
+          'X-RateLimit-Tier': rateLimit.tier,
           'Retry-After': Math.ceil(rateLimit.resetIn / 1000).toString()
         }
       });
@@ -68,12 +231,15 @@ serve(async (req) => {
       })
     }
 
-    console.log(`Analyzing ${username}`)
+    // Validate username format
+    if (typeof username !== 'string' || username.length === 0 || username.length > 39) {
+      return new Response(JSON.stringify({ error: 'Invalid username format' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    console.log(`Analyzing ${username}`)
 
     // Check if user already analyzed
     const { data: existingUser } = await supabase
@@ -94,9 +260,26 @@ serve(async (req) => {
     }
 
     // Fetch GitHub user data
-    const userResponse = await fetch(`https://api.github.com/users/${username}`)
+    console.log(`Fetching GitHub data for ${username}`)
+    const userResponse = await fetch(`https://api.github.com/users/${username}`, {
+      headers: {
+        'User-Agent': 'GitHub-DNA-Analyzer/1.0'
+      }
+    })
     if (!userResponse.ok) {
-      throw new Error('GitHub user not found or has no public profile')
+      if (userResponse.status === 404) {
+        throw new Error('GitHub user not found. Please check the username and ensure the profile is public.')
+      } else if (userResponse.status === 403) {
+        // Capture rate limit reset time from GitHub headers
+        const resetTime = userResponse.headers.get('x-ratelimit-reset');
+        const resetTimestamp = resetTime ? parseInt(resetTime) * 1000 : null; // Convert to milliseconds
+        const errorMessage = resetTimestamp 
+          ? `RATE_LIMIT:${resetTimestamp}:Server is currently overloaded due to high traffic. GitHub API rate limit exceeded. Please wait until the timer expires and try again.`
+          : 'Server is currently overloaded due to high traffic. GitHub API rate limit exceeded. Please wait a few minutes and try again.';
+        throw new Error(errorMessage);
+      } else {
+        throw new Error(`GitHub API error: ${userResponse.status}`)
+      }
     }
     const userData = await userResponse.json()
 
@@ -105,10 +288,32 @@ serve(async (req) => {
       throw new Error('Invalid GitHub user profile')
     }
 
+    console.log(`GitHub user data for ${username}:`, {
+      followers: userData.followers,
+      public_repos: userData.public_repos,
+      login: userData.login,
+      id: userData.id
+    })
+
     // Fetch user repositories
-    const reposResponse = await fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`)
+    console.log(`Fetching repositories for ${username}`)
+    const reposResponse = await fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`, {
+      headers: {
+        'User-Agent': 'GitHub-DNA-Analyzer/1.0'
+      }
+    })
     if (!reposResponse.ok) {
-      throw new Error('Failed to fetch repositories')
+      if (reposResponse.status === 403) {
+        // Capture rate limit reset time from GitHub headers
+        const resetTime = reposResponse.headers.get('x-ratelimit-reset');
+        const resetTimestamp = resetTime ? parseInt(resetTime) * 1000 : null; // Convert to milliseconds
+        const errorMessage = resetTimestamp 
+          ? `RATE_LIMIT:${resetTimestamp}:Server is currently overloaded due to high traffic. GitHub API rate limit exceeded. Please wait until the timer expires and try again.`
+          : 'Server is currently overloaded due to high traffic. GitHub API rate limit exceeded. Please wait a few minutes and try again.';
+        throw new Error(errorMessage);
+      } else {
+        throw new Error(`Failed to fetch repositories: ${reposResponse.status}`)
+      }
     }
     const repos = await reposResponse.json()
 
@@ -128,6 +333,7 @@ serve(async (req) => {
     const analysis = analyzeRepositories(repos, userData)
 
     // Insert into database
+    console.log(`Inserting user ${userData.login} into database with metrics:`, analysis.metrics)
     const { data, error } = await supabase
       .from('users')
       .insert({
@@ -137,13 +343,43 @@ serve(async (req) => {
         dna_primary: analysis.primary,
         dna_secondary: analysis.secondary,
         score_breakdown: analysis.scores,
-        raw_metrics: analysis.metrics
+        raw_metrics: analysis.metrics,
+        analyzed_at: new Date().toISOString()
       })
       .select()
       .single()
 
     if (error) {
-      console.error('Database error:', error)
+      console.error('Database insertion error:', error)
+      throw error
+    }
+
+    console.log(`Successfully inserted user ${userData.login} with ID:`, data?.id)
+
+    if (error) {
+      console.error('Database insertion error:', error)
+      // Check if it's a duplicate key error (user already exists)
+      if (error.code === '23505') {
+        // Try to fetch existing user instead
+        const { data: existingUser, error: fetchError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('github_id', userData.id)
+          .single()
+
+        if (fetchError) {
+          console.error('Error fetching existing user:', fetchError)
+          throw new Error('Database error occurred')
+        }
+
+        return new Response(JSON.stringify({
+          dna_primary: existingUser.dna_primary,
+          dna_secondary: existingUser.dna_secondary,
+          score_breakdown: existingUser.score_breakdown
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
       throw error
     }
 
@@ -179,6 +415,13 @@ function analyzeRepositories(repos: any[], userData: any) {
     isFork: 0,
     createdRecently: 0
   }
+
+  console.log(`Calculated metrics for ${userData.login}:`, {
+    totalRepos: metrics.totalRepos,
+    totalStars: metrics.totalStars,
+    followers: metrics.followers,
+    totalForks: metrics.totalForks
+  })
 
   const now = new Date()
   const sixMonthsAgo = new Date(now.getTime() - 6 * 30 * 24 * 60 * 60 * 1000)
